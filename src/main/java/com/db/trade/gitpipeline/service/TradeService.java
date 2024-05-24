@@ -2,7 +2,6 @@ package com.db.trade.gitpipeline.service;
 
 import com.db.trade.gitpipeline.model.Trade;
 import com.db.trade.gitpipeline.repository.TradeRepo;
-import jdk.nashorn.internal.runtime.options.Option;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

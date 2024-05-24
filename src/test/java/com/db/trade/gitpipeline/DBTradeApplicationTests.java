@@ -3,15 +3,14 @@ package com.db.trade.gitpipeline;
 import com.db.trade.gitpipeline.controller.TradeController;
 import com.db.trade.gitpipeline.exception.TradeException;
 import com.db.trade.gitpipeline.model.Trade;
+import com.db.trade.gitpipeline.repository.TradeRepo;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.util.Assert;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -27,6 +26,9 @@ public class DBTradeApplicationTests {
 
     @Autowired
     TradeController tradeController;
+
+    @Autowired
+    TradeRepo tradeRepo;
 
 
     private Trade getTrade(String tradeId, String bookId, String counterPartID, int version, LocalDate maturityDate, String expFlag) {
@@ -54,6 +56,25 @@ public class DBTradeApplicationTests {
         } catch (TradeException e) {
 
             Assertions.assertNotNull(e);
+        }
+    }
+
+    @Test
+    public void test_when_same_version_trade_posted_then_override_the_existing_trade() {
+
+
+        ResponseEntity responseEntity = tradeController.trade(getTrade("T1", "B1", "CP-4", 4, LocalDate.now(), "Y"));
+        try {
+            ResponseEntity responseEntity1 = tradeController.trade(getTrade("T1", "B1", "CP-3", 4, LocalDate.now(), "N"));
+            List<Trade> tradeList = tradeRepo.findAll();
+
+            Assertions.assertEquals("T1",tradeList.get(0).getTradeId());
+            Assertions.assertEquals(4,tradeList.get(0).getVersion());
+            Assertions.assertEquals("CP-3",tradeList.get(0).getCounterPartId());
+
+        } catch (TradeException e) {
+
+            Assertions.fail();
         }
     }
 
