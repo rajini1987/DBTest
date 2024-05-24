@@ -2,6 +2,7 @@ package com.db.trade.gitpipeline.service;
 
 import com.db.trade.gitpipeline.model.Trade;
 import com.db.trade.gitpipeline.repository.TradeRepo;
+import jdk.nashorn.internal.runtime.options.Option;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,10 +17,10 @@ public class TradeService {
 
     public boolean isValidVersion(Trade trade){
 
-        if(validateMaturityDate(trade)) {
-            Trade exsitingTrade = tradeRepo.getOne(trade.getTradeId());
-            if (exsitingTrade.getTradeId() !=null) {
-                return validateVersion(trade, exsitingTrade);
+        if(valideMaturityDate(trade)) {
+            Optional<Trade> existingTrade = tradeRepo.findById(trade.getTradeId());
+            if (existingTrade.isPresent()) {
+                return validateVersion(trade, existingTrade.get());
             }else{
                 return true;
             }
@@ -29,14 +30,16 @@ public class TradeService {
 
     private boolean validateVersion(Trade trade,Trade oldTrade) {
 
-        if(trade.getVersion() >= oldTrade.getVersion()){
-            return true;
-        }
-        return false;
+        return trade.getVersion() >= oldTrade.getVersion();
     }
 
-    private boolean validateMaturityDate(Trade trade){
-        return trade.getMaturityDate().isBefore(LocalDate.now())  ? false:true;
+    public void  createNewTrade(Trade trade){
+        trade.setCreatedDate(LocalDate.now());
+        tradeRepo.save(trade);
+    }
+
+    private boolean valideMaturityDate(Trade trade){
+        return !trade.getMaturityDate().isBefore(LocalDate.now());
     }
 
 
